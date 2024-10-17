@@ -74,6 +74,23 @@ class UsermanageController extends AdminController {
         $this->display();
     }
 
+    
+    /**
+     * adduser方法显示新增用户界面
+     */
+    public function adduser(){
+       // $id =intval(I('uid'));
+        
+        $map['status'] = array('gt',0);
+
+        $this->random=md5(time());
+        $this->departments=M('common_departments')->where($map)->select();
+        $this->majors=M('common_majors')->where(array('status'=>'1'))->select();
+        //$this->user_data = M('garden_user_view')->where(array('uid'=>$id))->select();
+
+        $this->display();
+    }
+
     /**
      * edit方法显示编辑用户界面
      */
