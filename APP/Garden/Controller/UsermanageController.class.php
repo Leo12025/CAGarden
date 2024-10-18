@@ -108,6 +108,97 @@ class UsermanageController extends AdminController {
     }
 
     /**
+     * adduserpost方法保存新用户
+     */
+    public function adduserpost(){
+        /**
+         * 基础信息
+         */
+        //I('username');
+        //$this->error('保存失败！',U('/Garden/1'));
+        $uuid=I('username');
+        if($uuid=="" || $uuid=="1"){$uuid=$this->get_rand_str(8);}
+        $base_data=array(
+            'username' => $uuid,
+            'truename' =>I('truename'),
+            'mobile' => I('mobile'),
+            'qq' => I('qq'),
+            'email' =>  I('email'),
+            'major' =>  I('major'),
+            'reg_ip' => get_client_ip(),
+            'certify' => 'password',
+            'userType' => 'garden',
+            'addtime'   =>  date('y-m-d H:i:s'),
+            'college'=> I('college'),
+        );
+        
+        /** 
+         * 社团信息
+         */
+        $extend_data=array(
+            'username'=>$uuid,
+            'type' => 1,
+            'dep' => 1,
+            'position' =>I('position'),
+            'flag' => I('flag'),
+        );
+        if($extend_data['type']=='2'){
+            $extend_data['is_admin']=1;
+        }else{
+            $extend_data['is_admin']=0;
+        }
+        /**
+         * 上传头像
+         */
+        /*
+        if(($_FILES['img']['type'])){
+            
+            $upload = new \Think\Upload();// 实例化上传类
+            $upload->maxSize   =     C('MAX_PHOTO_POST_SIZE');
+            $upload->exts      =     array('jpg', 'gif', 'png', 'jpeg');// 设置附件上传类型
+            $upload->rootPath  =     './Public'; // 设置附件上传根目录
+            $upload->savePath  =     '/Uploads/'; // 设置附件上传（子）目录
+            
+            //$info = $upload->uploadOne($_FILES['img']);
+            /*
+            if($info) {// 头像上传成功则保存头像
+                $base_data['img'] = $info['savepath'].$info['savename'];
+            }else{
+                //上传失败，显示失败信息
+                $this->error($upload->getError());
+            }
+            */
+            
+        // 新用户默认不上传头像，如需要则解除上述代码屏蔽
+        $base_data['img'] = '/images/img.jpg';
+        /**
+         * 判断是否有重设密码
+         */
+        $password_id='password';
+
+        
+        $base_data['salt']=md5(time());
+        $password = I($password_id,'','md5');
+        $base_data['password']=md5($base_data['salt'].$password);
+        $checkExis=M('users')->where(array('username'=>I('username')))->find();
+        if($checkExis){
+                 // $this->error('用户已经存在！');
+                 $reg_result['msg']='用户已经存在！';
+        }else{
+            $result1=M('users')->add($base_data);
+            $result2=M('garden_users_extend')->add($extend_data);
+            if ($result1===false||$result2===false) {
+                $this->error('保存失败！');
+            }else{
+
+                    $this->success('保存成功！',U('/Garden/Usermanage'));
+            }  
+        }
+        //return_json($reg_result);
+    }
+    
+
+    /**
      * 保存编辑过的用户信息
      */
     public function datapost(){
