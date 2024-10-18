@@ -72,9 +72,11 @@ class IndexController extends CommonController {
 
         $list = D('ProjectView')->where(array('pr_pid'=>$project['pr_id'],'pr_status'=>'1'))->select(); //查询子项目信息
         $len=count($list, 0);
+        $showlist=[];
         if($len){
             for($i=0;$i<$len;$i++)
             {
+                $isshow=false;
                 $musers=explode_members($list[$i]['pr_muser']);
                 $list[$i]['muser_info']=$musers[0];
                 $musers_count=count($musers,0);
@@ -83,15 +85,31 @@ class IndexController extends CommonController {
 
                 if($list[$i]['pr_cuser']==$uid){
                     $list[$i]['right']=true;
+                    $isshow=true;
                 }
                 for ($z=0; $z < $musers_count; $z++) { 
                     if($musers[$z]['uid']==$uid){
                         $list[$i]['right']=true;
+                        $isshow=true;
                     }
                 }
+                $members=explode_members($list[$i]['pr_members']);
+                $members_count=count($members,0);
+                for ($z=0; $z < $members_count; $z++) { 
+                    if($members[$z]['uid']==$uid){
+                        //$list[$i]['right']=true;
+                        $isshow=true;
+                    }
+                }
+
+                if($uid == '1' or $isshow==true){
+                    array_push($showlist,$list[$i]);
+                }
+                
             }
+
         }
-        $this->assign('sub_projects',$list);
+        $this->assign('sub_projects',$showlist);
         $this->assign('pr_p_info',$pr_p_info);
         if($pr_id==1){$this->assign('isroot',true);}//根项目
         $password = D('PublicPasswordView')->where(array('pw_prid'=>$pr_id,'status'=>'1'))->select(); //查询项目密码信息        
@@ -102,14 +120,16 @@ class IndexController extends CommonController {
                 $musers=explode_members($password[$i]['pw_muser']);
                 $musers_count=count($musers,0);
                 $password[$i]['muser_info']= $musers[0];//显示第一个密码管理员（主管理员）信息
-
+                $isshow=false;
                 $list_right=false;
                 if($password[$i]['pw_cuser']==$uid){
                     $list_right=true;
+                    $isshow=true;
                 }
                 for ($z=0; $z < $musers_count; $z++) { 
                     if($musers[$z]['uid']==$uid){
                         $list_right=true;
+                        $isshow=true;
                     }
                 }
                 $password[$i]['right']=($list_right||($project['manage_right_check']&&((int)$password[$i]['project_mamager_permit'])));
